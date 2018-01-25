@@ -1,13 +1,14 @@
 cmake_minimum_required(VERSION 2.8)
 
+list(APPEND CMAKE_MODULE_PATH 
+    "${CMAKE_CURRENT_SOURCE_DIR}/FindCMakeModules/"
+)
+include(BuildType)
 project(SDL2UniSampler)
 
 set(CMAKE_CXX_FLAGS "-std=c++14 -Wall")
 
 # SDL2
-list(APPEND CMAKE_MODULE_PATH 
-    "${CMAKE_CURRENT_SOURCE_DIR}/FindCMakeModules/"
-)
 find_package(SDL2)
 
 # Python libraries for pyliaison
@@ -38,8 +39,24 @@ target_include_directories(SDL2UniSampler PUBLIC
     ${UNISAMPLER_INC}
 )
 
-target_link_libraries(SDL2UniSampler LINK_PUBLIC 
-    ${SDL2_LIBS} 
-    tinyxml2
-    UniSampler
-)
+if (WIN32)
+	SET(_WIN_XIPH_LIBS 
+		"$ENV{SDK}/libsndfile/lib/x64/${CMAKE_BUILD_TYPE}/libsndfile.lib"
+		"$ENV{SDK}/XIPH/vorbis/lib/x64/${CMAKE_BUILD_TYPE}/libvorbis_static.lib"
+		"$ENV{SDK}/XIPH/FLAC/lib/x64/${CMAKE_BUILD_TYPE}/libFLAC_static.lib"
+		"$ENV{SDK}/XIPH/ogg/lib/x64/${CMAKE_BUILD_TYPE}/libogg_static.lib")
+	
+	target_link_libraries(SDL2UniSampler LINK_PUBLIC 
+		${SDL2_LIBS} 
+		${_WIN_XIPH_LIBS}
+		tinyxml2
+		UniSampler
+	)
+ELSE (WIN32)
+	target_link_libraries(SDL2UniSampler LINK_PUBLIC 
+		${SDL2_LIBS} 
+		sndfile
+		tinyxml2
+		UniSampler
+	)
+endif(WIN32)

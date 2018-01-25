@@ -78,20 +78,21 @@ PATHS
 /opt/local # DarwinPorts
 /opt/csw # Blastwave
 /opt
-C:/Libraries/SDL2
+D:/Libraries/SDL2
 )
 #MESSAGE("SDL2_INCLUDE_DIR is ${SDL2_INCLUDE_DIR}")
 FIND_LIBRARY(SDL2_LIBRARY_TEMP
 NAMES SDL2
 HINTS
 $ENV{SDL2DIR}
-PATH_SUFFIXES lib64 lib SDL2
+PATH_SUFFIXES lib64 lib SDL2 lib/x64
 PATHS
 /sw
 /opt/local
 /opt/csw
 /opt
 /usr/lib
+D:/Libraries/SDL2/
 )
 #MESSAGE("SDL2_LIBRARY_TEMP is ${SDL2_LIBRARY_TEMP}")
 IF(NOT SDL_BUILDING_LIBRARY)
@@ -103,13 +104,14 @@ IF(NOT ${SDL2_INCLUDE_DIR} MATCHES ".framework")
 FIND_LIBRARY(SDLMAIN_LIBRARY
 NAMES SDL2main
 HINTS
-$ENV{SDLDIR}
-PATH_SUFFIXES lib64 lib SDL2
+$ENV{SDL2DIR}
+PATH_SUFFIXES lib64 lib SDL2 lib/x64
 PATHS
 /sw
 /opt/local
 /opt/csw
 /opt
+D:/Libraries/SDL2
 /usr/lib
 )
 ENDIF(NOT ${SDL2_INCLUDE_DIR} MATCHES ".framework")
