@@ -49,6 +49,7 @@ if (WIN32)
 	target_link_libraries(SDL2UniSampler LINK_PUBLIC 
 		${SDL2_LIBS} 
 		${_WIN_XIPH_LIBS}
+		${CUDA_LIBRARIES}
 		tinyxml2
 		UniSampler
 	)
