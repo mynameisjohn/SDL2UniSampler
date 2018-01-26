@@ -60,7 +60,7 @@ int main( int argc, char* argv[] )
 
 	// Load XML file (relative path)
 	std::string strCurPath = argv[0];
-#ifdef UNISAMPLER_WINDOWS
+#if _WIN32
 	strCurPath = strCurPath.substr( 0, strCurPath.find_last_of( '\\' ) );
 #else
 	strCurPath = strCurPath.substr( 0, strCurPath.find_last_of( '/' ) );
