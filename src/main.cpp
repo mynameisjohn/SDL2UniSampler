@@ -2,8 +2,11 @@
 
 #include <tinyxml2.h>
 #include <iostream>
+#include <unistd.h>
 
 #include "UniSampler.h"
+
+#include <cuda_runtime.h>
 
 // prototype for our audio callback
 // see the implementation for more information
@@ -14,7 +17,7 @@ std::mutex g_muSampler;
 UniSampler g_Sampler;
 
 // Playstate struct
-struct PlayState
+struct SDLPlayState
 {
 	float fCurrentPos{ 0 };
 	uint32_t uTempo{ 120 };
@@ -51,6 +54,7 @@ void setupKeyboard( tinyxml2::XMLDocument * pDoc );
 // Expects XML file as first argument
 int main( int argc, char* argv[] )
 {
+
 	// We'll load in an XML file from the command line
 	if ( argc < 2 )
 	{
@@ -59,7 +63,7 @@ int main( int argc, char* argv[] )
 	}
 
 	// Load XML file (relative path)
-	std::string strCurPath = argv[0];
+	std::string strCurPath = "/home/nvidia/John/Repos/SDL2UniSampler/build";
 #if _WIN32
 	strCurPath = strCurPath.substr( 0, strCurPath.find_last_of( '\\' ) );
 #else
@@ -67,7 +71,7 @@ int main( int argc, char* argv[] )
 #endif
 
 	// Make sure it's valid
-	std::string strFilePath = strCurPath + "/" + argv[1];
+	std::string strFilePath = "/home/nvidia/John/Repos/SDL2UniSampler/build/osc.xml"; //strCurPath + "/" + argv[1];
 	tinyxml2::XMLDocument doc;
 	tinyxml2::XMLError xErr = doc.LoadFile( strFilePath.c_str() );
 	if ( xErr != tinyxml2::XML_SUCCESS )
@@ -83,8 +87,10 @@ int main( int argc, char* argv[] )
 		return -1;
 	}
 
+
 	// Get keyboard input setup
 	setupKeyboard( &doc );
+	handleKey(true, SDLK_b);
 
 	// Initialize SDL.
 	if ( SDL_Init( SDL_INIT_AUDIO ) < 0 )
@@ -129,15 +135,16 @@ int main( int argc, char* argv[] )
 	g_Sampler.Enable( true );
 
 	// Create window... we need it for keyboard input. I might disable this later on. 
-	SDL_Window * pWindow = SDL_CreateWindow( "SDL2UniSampler", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 500, 500, SDL_WINDOW_OPENGL );
-	if ( pWindow == nullptr )
-	{
-		TRACE( "Unable to open SDL window" );
-		return -1;
-	}
+	// SDL_Window * pWindow = SDL_CreateWindow( "SDL2UniSampler", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 500, 500, SDL_WINDOW_OPENGL );
+	// if ( pWindow == nullptr )
+	// {
+	// 	TRACE( "Unable to open SDL window" );
+	// 	return -1;
+	// }
 
 	/* Start playing */
 	SDL_PauseAudio( 0 );
+/*
 
 	// Event loop
 	SDL_Event e{ 0 };
@@ -160,10 +167,16 @@ int main( int argc, char* argv[] )
 					break;
 			}
 		}
+		
 	}
+*/
+
+	std::cout << "Waiting for keyboard input..." << std::endl;
+	std::cin.get();
+
 
 	// shut everything down
-	SDL_DestroyWindow( pWindow );
+	// SDL_DestroyWindow( pWindow );
 	SDL_CloseAudio();
 
 	return EXIT_SUCCESS;
@@ -269,6 +282,7 @@ bool handleKey( bool bKeyDown, SDL_Keycode keySym )
 // you should only copy as much as the requested length (len)
 void ProcessSampler( void *pCustomData, Uint8 *pData, int iLengthInBytes )
 {
+
 	static std::vector<float> s_vDeInterleaveBuf;
 	if ( UniSampler * pSampler = (UniSampler *) pCustomData )
 	{
@@ -282,8 +296,13 @@ void ProcessSampler( void *pCustomData, Uint8 *pData, int iLengthInBytes )
 		float fBeatEnd = g_PlayState.fCurrentPos + fBeatsPerBuf;
 
 		// Process
-		pSampler->Process( g_PlayState.fCurrentPos, fBeatEnd, g_PlayState.uTempo, s_vDeInterleaveBuf.data(), iLength, EPlayState::PLAYING );
-		
+		static bool bFirst = true;
+		if (bFirst)
+			pSampler->Process( g_PlayState.fCurrentPos, fBeatEnd, g_PlayState.uTempo, s_vDeInterleaveBuf.data(), iLength, EPlayState::STARTING );
+		else
+			pSampler->Process( g_PlayState.fCurrentPos, fBeatEnd, g_PlayState.uTempo, s_vDeInterleaveBuf.data(), iLength, EPlayState::PLAYING );
+		bFirst = false;
+
 		// Interleave data
 		float * pfOutData = (float *) pData;
 		for ( int i = 0; i < iLength; i++ )

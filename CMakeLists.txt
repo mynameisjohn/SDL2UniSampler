@@ -6,7 +6,15 @@ list(APPEND CMAKE_MODULE_PATH
 include(BuildType)
 project(SDL2UniSampler)
 
-set(CMAKE_CXX_FLAGS "-std=c++14 -Wall")
+set(CMAKE_CXX_FLAGS "-std=c++11 -Wall")
+
+IF(${CMAKE_BUILD_TYPE} STREQUAL "DEBUG")
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -G")
+ENDIF(${CMAKE_BUILD_TYPE} STREQUAL "DEBUG")
+
+# let CMake find CUDA
+FIND_PACKAGE(CUDA QUIET REQUIRED)
+# SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}; -arch sm_52 -Xcompiler -rdynamic -lineinfo")
 
 # SDL2
 find_package(SDL2)
@@ -30,7 +38,7 @@ source_group("Source" FILES ${SOURCES})
 source_group("Include" FILES ${HEADERS})
 
 # Add the SDL2UniSampler executable
-add_executable(SDL2UniSampler ${SOURCES} ${HEADERS})
+cuda_add_executable(SDL2UniSampler ${SOURCES} ${HEADERS})
 
 # Make sure it gets its include paths
 target_include_directories(SDL2UniSampler PUBLIC 
@@ -56,8 +64,9 @@ if (WIN32)
 ELSE (WIN32)
 	target_link_libraries(SDL2UniSampler LINK_PUBLIC 
 		${SDL2_LIBS} 
-		sndfile
 		tinyxml2
 		UniSampler
+		${CUDA_LIBRARIES}
+		-lsndfile
 	)
 endif(WIN32)
